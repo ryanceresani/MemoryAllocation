@@ -2,6 +2,11 @@ package memAllocator;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * @author Ryan Ceresani
+ *
+ *Inner job class to keep track of Job information for memory allocator
+ */
 public class Job {
 	private int size;
 	private int id;
@@ -12,7 +17,6 @@ public class Job {
 		this.size = size;
 	}
 	public long getSize() {
-		// TODO Auto-generated method stub
 		return size;
 	}
 	public int getId() {

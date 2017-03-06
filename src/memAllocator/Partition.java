@@ -1,5 +1,9 @@
 package memAllocator;
 
+/**
+ * @author ryanc
+ *
+ */
 public class Partition {
 	private long size;
 	private boolean free;
@@ -13,15 +17,22 @@ public class Partition {
 		setCurrentJob(null);
 	}
 
+	/**
+	 * @return the fragmentation within a partition
+	 */
 	public long getFragmentation() {
 		return size - job.getSize();
 	}
 
 	public Job getCurrentJob() {
-		
 		return job;
 	}
 
+	
+	/**
+	 * Sets the current job, if the new job is null it becomes free space
+	 * @param currentJob
+	 */
 	public void setCurrentJob(Job currentJob) {
 		if(currentJob == null){
 			setFree(true);
@@ -62,8 +73,9 @@ public class Partition {
 	}
 
 	/**
+	 * Determines if the potential job would fit in this partition
 	 * @param newJob
-	 * @return
+	 * @return if it has space for the job
 	 */
 	public boolean canFit(Job newJob) {
 		if(newJob.getSize() <= size){
@@ -72,6 +84,7 @@ public class Partition {
 		return false;
 	}
 
+	
 	public String getStatus() {
 		if(free) return "Free";
 		else return "Busy";

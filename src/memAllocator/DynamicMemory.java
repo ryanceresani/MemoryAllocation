@@ -142,15 +142,19 @@ public class DynamicMemory{
 	}
 
 	/**
+	 * BestFit Memory Allocation for Dynamic Memory
+	 * Finds closest matchin place to the incoming job (if any) and assigns it there.
 	 * @param newJob
 	 */
 	private void addBestFit(Job newJob){
 		Long bestFit = null;
 		Partition bestFitPart = null;
+		//Iterate through list of free spaces
 		for(Long address : freeList.keySet()){
 			Partition currPart = freeList.get(address);
 			if(currPart.canFit(newJob)){
 				long testFit = currPart.getSize() - newJob.getSize();
+				//Check if there is no fit yet, if the fit is perfect, or its smaller than current best fit
 				if(bestFit == null || testFit == 0 || testFit < bestFit) {
 					bestFitPart = currPart;
 					bestFit = testFit;
@@ -158,28 +162,42 @@ public class DynamicMemory{
 			}
 
 		}
+		//If no fit was found, job goes to wait queue
 		if(bestFitPart == null){
 			waitJobs.add(newJob);
 		}
+		//Fit was found
 		else {
+			//Designate a partition exactly the size of the job and add a blank partition immediately afterwads in the blank space
 			allocate(bestFitPart, newJob);
+			//Map job to partition it is in for easy access later
 			jobMap.put(newJob.getId(), bestFitPart);
+			//Set the partitions current job
 			bestFitPart.setCurrentJob(newJob);
+			//remove the location from the free list
 			freeList.remove(bestFitPart.getMemAddress());
 		}
 	}
 
 	/**
+	 * First Fit Memory Allocation for Dynamic Memory
+	 * Finds first matching place for the incoming job (if any) and assigns it there.
 	 * @param newJob
 	 */
 	private void addFirstFit(Job newJob){
+		//Iterate through list of free spaces
 		for(Long address : freeList.keySet()){
 			Partition currPart = freeList.get(address);
 			if(currPart.canFit(newJob)){
+				//Designate a partition exactly the size of the job and add a blank partition immediately afterwads in the blank space
 				allocate(currPart, newJob);
+				//Set the partitions current job
 				currPart.setCurrentJob(newJob);
+				//Map job to partition it is in for easy access later
 				jobMap.put(newJob.getId(), currPart);
+				//remove the location from the free list
 				freeList.remove(currPart.getMemAddress());
+				//Match found, we can immediately exit the method
 				return;
 			}
 		}
@@ -187,6 +205,7 @@ public class DynamicMemory{
 	}
 
 	/**
+	 * Same as Best Fit but looks for one that leaves most fragmentation
 	 * @param newJob
 	 */
 	private void addWorstFit(Job newJob){
@@ -214,9 +233,11 @@ public class DynamicMemory{
 	}
 
 	/**
+	 * Same as First Fit but starts at the most recently allocated partition and works around
 	 * @param newJob
 	 */
 	private void addNextFit(Job newJob){
+		//Iterate to the end of the Free Space list, starting at the desired location.
 		Iterator<Map.Entry<Long,Partition>> iter = freeList.tailMap(lastAllocated).entrySet().iterator();
 		while (iter.hasNext()){
 			Map.Entry<Long, Partition> entry = iter.next();
@@ -231,6 +252,7 @@ public class DynamicMemory{
 				}
 			}
 		}
+		//If nothing found to the end, go from the beginning to the original space to complete full traversal
 		iter = freeList.headMap(lastAllocated).entrySet().iterator();
 		while (iter.hasNext()){
 			Map.Entry<Long, Partition>entry = iter.next();
@@ -249,6 +271,9 @@ public class DynamicMemory{
 	}	
 
 	/**
+	 * Splits the partition into two
+	 * One partition contains the job
+	 * The other contains remaining free space
 	 * @param bestFitPart
 	 * @param newJob
 	 */
@@ -262,6 +287,10 @@ public class DynamicMemory{
 
 
 	/**
+	 * Simulates a job completing
+	 * Removes it from the active job map, sets the partitions job to null, 
+	 * deallocates the memory, updates the free list,
+	 *  and then checks to see if anything in the Wait Queue can be assigned
 	 * @param id
 	 */
 	public void removeJob(int id){
@@ -277,32 +306,39 @@ public class DynamicMemory{
 	}
 
 	/**
+	 * Follows standard dynamic deallocation for Isolated, join two, and join three.
+	 * Checks if the neighbors are free and then does the proper joining based on that
 	 * @param p
 	 */
 	private void deallocate(Partition p) {
 		int freeNeighbors = 0;
 		Partition higher = null;
 		Partition lower = null;
+		//If the partition immediately after this one is free
 		try {
 			higher = partitions.higherEntry(p.getMemAddress()).getValue();
 			if(higher.isFree()){
 				freeNeighbors++;
 			}
+			//If this is last entry in list, we move on
 		} catch (NullPointerException e) {
 		}
-
+		//If the partition immediately before this one is free
 		try {
 			lower = partitions.lowerEntry(p.getMemAddress()).getValue();
 			if(lower.isFree()){
 				freeNeighbors++;
-			}	
+			}
+			//If this is first entry in list, we move on
 		} catch (NullPointerException e) {	
 		}
 
+		//Isolated memory, just gets added to free list on its own
 		if(freeNeighbors == 0){
 			freeList.put(p.getMemAddress(), p);
 		}
 
+		//Joins all three empty partitions together
 		else if(freeNeighbors == 2){
 			partitions.remove(p.getMemAddress());
 			partitions.remove(higher.getMemAddress());
@@ -310,6 +346,7 @@ public class DynamicMemory{
 			freeList.remove(higher.getMemAddress());
 		}
 
+		//checks which of the two adjacent memory slots is open and joins with that
 		else{
 			if(!higher.equals(null) && higher.isFree()){
 				partitions.remove(higher.getMemAddress());
@@ -325,7 +362,9 @@ public class DynamicMemory{
 	}
 
 	/**
-	 * 
+	 * called after memory is deallocated
+	 * Since the memory state has changed, it iterates through the waiting jobs to see if any can now fit.
+	 * If they can it adds them to the spot using First Fit
 	 */
 	private void checkWaitQueue() {
 		Iterator<Job> it = waitJobs.iterator();

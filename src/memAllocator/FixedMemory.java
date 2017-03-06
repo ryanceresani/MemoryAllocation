@@ -8,6 +8,8 @@ import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.TreeMap;
 
 import memAllocator.MemoryTester.Algorithm;
 
@@ -23,8 +25,8 @@ public class FixedMemory{
 	private ArrayDeque<Job> waitJobs;
 	private long address;
 	private HashMap<Integer, Partition> jobMap;
-	private HashMap<Long,Partition> freeList;
-	private int lastAlotted;
+	private TreeMap<Long, Partition> freeList;
+	private long lastAlotted;
 
 	public FixedMemory(long size, long memAddress){
 		totalSize = size;
@@ -32,11 +34,15 @@ public class FixedMemory{
 		partitions = new LinkedList<Partition>();
 		waitJobs = new ArrayDeque<Job>();
 		jobMap = new HashMap<Integer, Partition>();
-		freeList = new HashMap<Long, Partition>();
+		freeList = new TreeMap<Long, Partition>();
 		loadPartitions();
 		lastAlotted = 0;
 	}
 
+	/**
+	 * Imports the partition sizes from a config file. 
+	 * File will just be a text file with partition sizes.
+	 */
 	private void loadPartitions(){
 		long currentMemAddress = address;
 		try {
@@ -98,8 +104,10 @@ public class FixedMemory{
 					System.out.format(leftAlignFormat, "","%n");
 				}
 				System.out.format("+......................+%n");
-				System.out.format(leftAlignFormat, "Partition " + (partitions.indexOf(p)+1));;
-				System.out.format(leftAlignFormat, " has " + p.getFragmentation() + "k frag");
+				if(p.getFragmentation() > 0){
+					System.out.format(leftAlignFormat, "Partition " + (partitions.indexOf(p)+1));;
+					System.out.format(leftAlignFormat, " has " + p.getFragmentation() + "k frag");
+				}
 				for (int i = 0; i < breaks; i++) {
 					System.out.format(leftAlignFormat, "","%n");
 				}
@@ -126,6 +134,11 @@ public class FixedMemory{
 		}
 	}
 
+	/**
+	 * Determines which allocation algorith to use based on algorithm enum
+	 * @param algorithmID
+	 * @param newJob
+	 */
 	public void addJob(Algorithm algorithmID, Job newJob){
 		if(algorithmID == Algorithm.BEST_FIT){
 			addBestFit(newJob);
@@ -141,13 +154,20 @@ public class FixedMemory{
 		}
 	}
 
+	/**
+	 * BestFit Memory Allocation for Dynamic Memory
+	 * Finds closest matchin place to the incoming job (if any) and assigns it there.
+	 * @param newJob
+	 */
 	private void addBestFit(Job newJob){
 		Long bestFit = null;
 		Partition bestFitPart = null;
+		//Iterate through list of free spaces
 		for(Long address : freeList.keySet()){
 			Partition currPart = freeList.get(address);
 			if(currPart.canFit(newJob)){
 				long testFit = currPart.getSize() - newJob.getSize();
+				//Check if there is no fit yet, if the fit is perfect, or its smaller than current best fit
 				if(bestFit == null || testFit == 0 || testFit < bestFit) {
 					bestFitPart = currPart;
 					bestFit = testFit;
@@ -155,29 +175,47 @@ public class FixedMemory{
 			}
 
 		}
+		//If no fit was found, job goes to wait queue
 		if(bestFitPart == null){
 			waitJobs.add(newJob);
 		}
+		//Fit was found
 		else {
+			//Map job to partition it is in for easy access later
 			jobMap.put(newJob.getId(), bestFitPart);
+			//Set the partitions current job
 			bestFitPart.setCurrentJob(newJob);
+			//remove the location from the free list
 			freeList.remove(bestFitPart.getMemAddress());
 		}
 	}
 
+	/**
+	 * First Fit Memory Allocation for Dynamic Memory
+	 * Finds first matching place for the incoming job (if any) and assigns it there.
+	 * @param newJob
+	 */
 	private void addFirstFit(Job newJob){
 		for(Long address : freeList.keySet()){
 			Partition currPart = freeList.get(address);
 			if(currPart.canFit(newJob)){
+				//Set the partitions current job
 				currPart.setCurrentJob(newJob);
+				//Map job to partition it is in for easy access later
 				jobMap.put(newJob.getId(), currPart);
+				//remove the location from the free list
 				freeList.remove(currPart.getMemAddress());
+				//Match found, we can immediately exit the method
 				return;
 			}
 		}
 		waitJobs.add(newJob);
 	}
 
+	/**
+	 * Same as Best Fit but looks for one that leaves most fragmentation
+	 * @param newJob
+	 */
 	private void addWorstFit(Job newJob){
 		Long worstFit = null;
 		Partition worstFitPart = null;
@@ -201,23 +239,48 @@ public class FixedMemory{
 		}
 	}
 
+	/**
+	 * Same as First Fit but starts at the most recently allocated partition and works around
+	 * @param newJob
+	 */
 	private void addNextFit(Job newJob){
-		for (int i = 0; i < partitions.size(); i++) {
-			int pointer = (i + lastAlotted) % partitions.size();
-			Partition currPart = partitions.get(pointer);
+		//Iterate to the end of the Free Space list, starting at the desired location.
+		Iterator<Map.Entry<Long,Partition>> iter = freeList.tailMap(lastAlotted).entrySet().iterator();
+		while (iter.hasNext()){
+			Map.Entry<Long, Partition> entry = iter.next();
+			Partition currPart = entry.getValue();
 			if(currPart.isFree()){
 				if(currPart.canFit(newJob)){
 					currPart.setCurrentJob(newJob);
 					jobMap.put(newJob.getId(), currPart);
 					freeList.remove(currPart.getMemAddress());
-					lastAlotted = pointer;
 					return;
 				}
-			} 
+			}
+		}
+		//If nothing found to the end, go from the beginning to the original space to complete full traversal
+		iter = freeList.headMap(lastAlotted).entrySet().iterator();
+		while (iter.hasNext()){
+			Map.Entry<Long, Partition>entry = iter.next();
+			Partition currPart = entry.getValue();
+			if(currPart.isFree()){
+				if(currPart.canFit(newJob)){
+					currPart.setCurrentJob(newJob);
+					jobMap.put(newJob.getId(), currPart);
+					freeList.remove(currPart.getMemAddress());
+					return;
+				}
+			}
 		}
 		waitJobs.add(newJob);
-	}
-
+	}	
+	
+	/**
+	 * Simulates a job completing
+	 * Removes it from the active job map, sets the partitions job to null, 
+	 * updates the free list, and then checks to see if anything in the Wait Queue can be assigned
+	 * @param id
+	 */
 	public void removeJob(int id){
 		try{
 			Partition p = jobMap.get(id);
@@ -229,9 +292,14 @@ public class FixedMemory{
 			System.out.println("Job with ID " + id + "  was not found.");
 			System.out.println("No job was removed.");
 		}
-		
+
 	}
 
+	/**
+	 * called after memory is deallocated
+	 * Since the memory state has changed, it iterates through the waiting jobs to see if any can now fit.
+	 * If they can it adds them to the spot using First Fit
+	 */
 	private void checkWaitQueue() {
 		Iterator<Job> it = waitJobs.iterator();
 		while(it.hasNext()){
@@ -244,6 +312,6 @@ public class FixedMemory{
 				}
 			}
 		}
-		
+
 	}
 }
