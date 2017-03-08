@@ -63,6 +63,13 @@ public class FixedMemory{
 		}
 	}
 
+	public void printAll(){
+		printPartitions();
+		printSnapShot();
+		printWaitQueue();
+		
+	}
+	
 	public void printPartitions(){
 		String leftAlignFormat = "| %-15d | %-13d | %-8s | %-7s |%n";
 		System.out.println("+Fixed Partition Status");

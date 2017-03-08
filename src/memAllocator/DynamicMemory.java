@@ -49,6 +49,13 @@ public class DynamicMemory{
 		freeList.put(start.getMemAddress(), start);
 	}
 
+	public void printAll(){
+		printFreeList();
+		printSnapShot();
+		printWaitQueue();
+		
+	}
+	
 	public void printPartitions(){
 		Iterator<Entry<Long, Partition>> it = partitions.entrySet().iterator();
 		while(it.hasNext()){
