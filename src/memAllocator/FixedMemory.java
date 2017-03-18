@@ -20,7 +20,6 @@ import memAllocator.MemoryTester.Algorithm;
 public class FixedMemory{
 
 	private static final String CONFIG_NAME = "FixedPartitionConfig";
-	private long totalSize;
 	private LinkedList<Partition> partitions;
 	private ArrayDeque<Job> waitJobs;
 	private long address;
@@ -29,7 +28,6 @@ public class FixedMemory{
 	private long lastAlotted;
 
 	public FixedMemory(long size, long memAddress){
-		totalSize = size;
 		this.address = memAddress;
 		partitions = new LinkedList<Partition>();
 		waitJobs = new ArrayDeque<Job>();
@@ -55,7 +53,8 @@ public class FixedMemory{
 				partitions.add(p);
 				freeList.put(p.getMemAddress(), p);
 				currentMemAddress += size;
-			} 
+			}
+			br.close();
 		} catch (IOException e) {
 			// TODO: handle exception
 			System.out.println("IO Exception: ");
