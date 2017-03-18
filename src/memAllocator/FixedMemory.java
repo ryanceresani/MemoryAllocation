@@ -147,6 +147,7 @@ public class FixedMemory{
 	 * @param newJob
 	 */
 	public void addJob(Algorithm algorithmID, Job newJob){
+		System.out.println("\n***ADD JOB " + newJob.getId());
 		if(algorithmID == Algorithm.BEST_FIT){
 			addBestFit(newJob);
 		}
@@ -289,6 +290,7 @@ public class FixedMemory{
 	 * @param id
 	 */
 	public void removeJob(int id){
+		System.out.println("\n***REMOVE JOB " + id);
 		try{
 			Partition p = jobMap.get(id);
 			jobMap.remove(id);
