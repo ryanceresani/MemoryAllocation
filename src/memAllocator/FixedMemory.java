@@ -20,6 +20,7 @@ import memAllocator.MemoryTester.Algorithm;
 public class FixedMemory{
 
 	private static final String CONFIG_NAME = "FixedPartitionConfig";
+	private long totalSize;
 	private LinkedList<Partition> partitions;
 	private ArrayDeque<Job> waitJobs;
 	private long address;
@@ -28,6 +29,7 @@ public class FixedMemory{
 	private long lastAlotted;
 
 	public FixedMemory(long size, long memAddress){
+		totalSize = size;
 		this.address = memAddress;
 		partitions = new LinkedList<Partition>();
 		waitJobs = new ArrayDeque<Job>();
@@ -53,8 +55,7 @@ public class FixedMemory{
 				partitions.add(p);
 				freeList.put(p.getMemAddress(), p);
 				currentMemAddress += size;
-			}
-			br.close();
+			} 
 		} catch (IOException e) {
 			// TODO: handle exception
 			System.out.println("IO Exception: ");
@@ -146,7 +147,6 @@ public class FixedMemory{
 	 * @param newJob
 	 */
 	public void addJob(Algorithm algorithmID, Job newJob){
-		System.out.println("\n***ADD JOB " + newJob.getId());
 		if(algorithmID == Algorithm.BEST_FIT){
 			addBestFit(newJob);
 		}
@@ -289,13 +289,12 @@ public class FixedMemory{
 	 * @param id
 	 */
 	public void removeJob(int id){
-		System.out.println("\n***REMOVE JOB " + id);
 		try{
 			Partition p = jobMap.get(id);
 			jobMap.remove(id);
 			p.setCurrentJob(null);
 			freeList.put(p.getMemAddress(), p);
-			checkWaitQueue();
+			if(!waitJobs.isEmpty()) {checkWaitQueue();}
 		} catch (NullPointerException e) {
 			System.out.println("Job with ID " + id + "  was not found.");
 			System.out.println("No job was removed.");
@@ -317,6 +316,7 @@ public class FixedMemory{
 				if(currPart.canFit(j)){
 					addFirstFit(j);
 					it.remove();
+					return;
 				}
 			}
 		}

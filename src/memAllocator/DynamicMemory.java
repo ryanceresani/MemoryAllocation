@@ -384,6 +384,7 @@ public class DynamicMemory{
 				if(currPart.canFit(j)){
 					addFirstFit(j);
 					it.remove();
+					return;
 				}
 			}
 		}

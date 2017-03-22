@@ -15,14 +15,18 @@ public class MemoryTester {
 		simulateAllocation(fix, jobArray, Algorithm.BEST_FIT);
 		simulateAllocation(dyn, jobArray, Algorithm.BEST_FIT);
 		
+		fix = new FixedMemory(MEMORY_SIZE, MEMORY_ADDRESS);
+		dyn = new DynamicMemory(MEMORY_SIZE, MEMORY_ADDRESS);
+		simulateAllocation(fix, jobArray, Algorithm.FIRST_FIT);
+		simulateAllocation(dyn, jobArray, Algorithm.FIRST_FIT);
+		
 	}
 
 	private static void simulateAllocation(DynamicMemory dyn, ArrayList<Job> jobArray, Algorithm algo) {
 		System.out.println();
 		System.out.println("DYNAMIC MEMORY SIMULATION");
 		dyn.printAll();
-		dyn.addJob(algo, jobArray.get(0));
-		
+		dyn.addJob(algo, jobArray.get(0));		
 		dyn.addJob(algo, jobArray.get(1));
 		dyn.printAll();
 		dyn.addJob(algo, jobArray.get(2));
