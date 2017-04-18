@@ -1,11 +1,15 @@
 package memAllocator;
 
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 import memAllocator.MemoryTester.Algorithm;
 
@@ -301,8 +305,11 @@ public class DynamicMemory{
 	 *  and then checks to see if anything in the Wait Queue can be assigned
 	 * @param id
 	 */
-	public void removeJob(int id){
+	public void removeJob(){
 		System.out.println("\n***REMOVE JOB " + id);
+		Set<Integer> keyList = jobMap.keySet();
+		int rand = ThreadLocalRandom.current().nextInt(0, keyList.size());
+		int id = ;
 		try {
 			Partition p = jobMap.get(id);
 			jobMap.remove(id);

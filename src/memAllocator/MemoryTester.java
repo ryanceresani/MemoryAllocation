@@ -1,53 +1,47 @@
 package memAllocator;
 
-import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class MemoryTester {
 
 	static final long MEMORY_SIZE = 200;
 	static final long MEMORY_ADDRESS = 0;
 	
+	//Maximum size of a randomly generated job
+	static final int MAX_JOB_SIZE = 80;
+	//Minimum size of a randomly generated job
+	static final int MIN_JOB_SIZE = 10;
+	//How long the sequence of add or remove jobs will be
+	static final int SEQUENCE_LENGTH = 20;
+	
 	public static void main(String[] args) {
-		ArrayList<Job> jobArray = jobBuilder();
-		FixedMemory fix = new FixedMemory(MEMORY_SIZE, MEMORY_ADDRESS);
+		ArrayDeque<JobRequest> jobRequests = jobBuilder();
+ 		FixedMemory fix = new FixedMemory(MEMORY_SIZE, MEMORY_ADDRESS);
 		DynamicMemory dyn = new DynamicMemory(MEMORY_SIZE, MEMORY_ADDRESS);
 		
-		simulateAllocation(fix, jobArray, Algorithm.BEST_FIT);
-		simulateAllocation(dyn, jobArray, Algorithm.BEST_FIT);
+		simulateAllocation(fix, jobRequests, Algorithm.BEST_FIT);
+		simulateAllocation(dyn, jobRequests, Algorithm.BEST_FIT);
 		
-		fix = new FixedMemory(MEMORY_SIZE, MEMORY_ADDRESS);
-		dyn = new DynamicMemory(MEMORY_SIZE, MEMORY_ADDRESS);
-		simulateAllocation(fix, jobArray, Algorithm.FIRST_FIT);
-		simulateAllocation(dyn, jobArray, Algorithm.FIRST_FIT);
-		
+//		fix = new FixedMemory(MEMORY_SIZE, MEMORY_ADDRESS);
+//		dyn = new DynamicMemory(MEMORY_SIZE, MEMORY_ADDRESS);
+//		simulateAllocation(fix, jobRequests, Algorithm.FIRST_FIT);
+//		simulateAllocation(dyn, jobRequests, Algorithm.FIRST_FIT);
 	}
 
-	private static void simulateAllocation(DynamicMemory dyn, ArrayList<Job> jobArray, Algorithm algo) {
+	private static void simulateAllocation(DynamicMemory dyn, ArrayDeque<JobRequest> jobRequests, Algorithm algo) {
 		System.out.println();
 		System.out.println("DYNAMIC MEMORY SIMULATION");
-		dyn.printAll();
-		dyn.addJob(algo, jobArray.get(0));		
-		dyn.addJob(algo, jobArray.get(1));
-		dyn.printAll();
-		dyn.addJob(algo, jobArray.get(2));
-		dyn.printAll();
-		dyn.addJob(algo, jobArray.get(3));
-		dyn.printAll();
-		dyn.removeJob(1);
-		dyn.printAll();
-		dyn.addJob(algo, jobArray.get(4));
-		dyn.printAll();
-		dyn.addJob(algo, jobArray.get(5));
-		dyn.printAll();
-		dyn.removeJob(4);
-		dyn.printAll();
-		dyn.removeJob(3);
-		dyn.printAll();
-		dyn.removeJob(2);
-		dyn.printAll();
+		for (int i = 0; i < jobRequests.size(); i++) {
+			dyn.printAll();
+			dyn.addJob(algo, jobRequests.poll().job);
+			if(ThreadLocalRandom.current().nextDouble() > .75){
+				dyn.removeJob();
+			}
+		}
 	}
 
-	private static void simulateAllocation(FixedMemory fix, ArrayList<Job> jobArray, Algorithm algo) {
+	private static void simulateAllocation(FixedMemory fix, ArrayDeque<JobRequest> jobArray, Algorithm algo) {
 		System.out.println("FIXED MEMORY SIMULATION");
 		fix.addJob(algo, jobArray.get(0));
 		fix.printAll();
@@ -70,17 +64,24 @@ public class MemoryTester {
 		fix.printAll();
 	}
 
-	private static ArrayList<Job> jobBuilder(){
-		ArrayList<Job> jobArray = new ArrayList<Job>();
-		jobArray.add(new Job(40));
-		jobArray.add(new Job(10));
-		jobArray.add(new Job(50));
-		jobArray.add(new Job(25));
-		jobArray.add(new Job(80));
-		jobArray.add(new Job(15));
-		jobArray.add(new Job(30));
+	private static ArrayDeque<JobRequest> jobBuilder(){
+		ArrayDeque<JobRequest> jobArray = new ArrayDeque<JobRequest>();
+		for (int i = 0; i < SEQUENCE_LENGTH; i++) {
+			JobRequest e = new JobRequest();
+			jobArray.add(e);
+		}
 		return jobArray;
 	}
+	
+	private class JobRequest 
+	{
+		Job job;
+		private JobRequest(){
+			int jobSize = ThreadLocalRandom.current().nextInt(MIN_JOB_SIZE, MAX_JOB_SIZE);
+			job = new Job(jobSize);
+		}
+	}
+	
 	public enum Algorithm {
 		BEST_FIT, FIRST_FIT, WORST_FIT, NEXT_FIT
 	}
