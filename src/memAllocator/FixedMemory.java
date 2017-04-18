@@ -293,7 +293,7 @@ public class FixedMemory{
 	 */
 	public void removeJob(){
 		List<Integer> keysAsArray = new ArrayList<Integer>(jobMap.keySet());
-		int rand = ThreadLocalRandom.current().nextInt(0, keysAsArray.size());
+		int rand = ThreadLocalRandom.current().nextInt(keysAsArray.size());
 		int id = keysAsArray.get(rand);
 		try{
 			Partition p = jobMap.get(id);
@@ -327,5 +327,9 @@ public class FixedMemory{
 			}
 		}
 
+	}
+	
+	public boolean isEmpty(){
+		return jobMap.isEmpty();
 	}
 }

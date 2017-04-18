@@ -307,10 +307,10 @@ public class DynamicMemory{
 	 * @param id
 	 */
 	public void removeJob(){
-		System.out.println("\n***REMOVE JOB");
 		List<Integer> keysAsArray = new ArrayList<Integer>(jobMap.keySet());
-		int rand = ThreadLocalRandom.current().nextInt(0, keysAsArray.size());
+		int rand = ThreadLocalRandom.current().nextInt(keysAsArray.size());
 		int id = keysAsArray.get(rand);
+		System.out.println("\n***REMOVE JOB " + id);
 		try {
 			Partition p = jobMap.get(id);
 			jobMap.remove(id);
@@ -396,6 +396,10 @@ public class DynamicMemory{
 				}
 			}
 		}
-	}	
+	}
+	
+	public boolean isEmpty(){
+		return jobMap.isEmpty();
+	}
 }
 

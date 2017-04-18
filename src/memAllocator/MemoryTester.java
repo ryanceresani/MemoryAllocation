@@ -16,12 +16,13 @@ public class MemoryTester {
 	static final int SEQUENCE_LENGTH = 20;
 	
 	public static void main(String[] args) {
-		ArrayDeque<JobRequest> jobRequests = jobBuilder();
+		ArrayDeque<JobRequest> dynJobRequests = jobBuilder();
+		ArrayDeque<JobRequest> fixJobRequests = new ArrayDeque<JobRequest>(dynJobRequests);
  		FixedMemory fix = new FixedMemory(MEMORY_SIZE, MEMORY_ADDRESS);
 		DynamicMemory dyn = new DynamicMemory(MEMORY_SIZE, MEMORY_ADDRESS);
 		
-		simulateAllocation(fix, jobRequests, Algorithm.BEST_FIT);
-		simulateAllocation(dyn, jobRequests, Algorithm.BEST_FIT);
+		simulateAllocation(fix, fixJobRequests, Algorithm.BEST_FIT);
+		simulateAllocation(dyn, dynJobRequests, Algorithm.BEST_FIT);
 		
 //		fix = new FixedMemory(MEMORY_SIZE, MEMORY_ADDRESS);
 //		dyn = new DynamicMemory(MEMORY_SIZE, MEMORY_ADDRESS);
@@ -36,7 +37,12 @@ public class MemoryTester {
 			dyn.addJob(algo, jobRequests.poll().job);
 			if(ThreadLocalRandom.current().nextDouble() > .75){
 				dyn.removeJob();
+				dyn.printAll();
 			}
+			dyn.printAll();
+		}
+		while(!dyn.isEmpty()){
+			dyn.removeJob();
 			dyn.printAll();
 		}
 	}
@@ -47,7 +53,12 @@ public class MemoryTester {
 			fix.addJob(algo, jobRequests.poll().job);
 			if(ThreadLocalRandom.current().nextDouble() > .75){
 				fix.removeJob();
+				fix.printAll();
 			}
+			fix.printAll();
+		}
+		while(!fix.isEmpty()){
+			fix.removeJob();
 			fix.printAll();
 		}
 	}
