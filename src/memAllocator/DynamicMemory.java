@@ -69,6 +69,9 @@ public class DynamicMemory{
 		System.out.println(jobMap.toString());
 	}
 
+	/**
+	 * Print the free list 
+	 */
 	public void printFreeList(){
 		System.out.println();
 		String leftAlignFormat = "| %-18d | %-13d |%n";
@@ -84,6 +87,9 @@ public class DynamicMemory{
 		System.out.format("+--------------------+---------------+%n");
 	}
 
+	/**
+	 * Print a snapshot of the memory at the current time.
+	 */
 	public void printSnapShot(){
 		System.out.println();
 		String leftAlignFormat = "| %-20s | %-5s %n";
@@ -115,6 +121,9 @@ public class DynamicMemory{
 		System.out.format(endFormat, totalSize + "k");
 	}
 
+	/**
+	 * Print out the queue of waiting jobs
+	 */
 	public void printWaitQueue(){
 		if(waitJobs.isEmpty()){
 			System.out.println();
