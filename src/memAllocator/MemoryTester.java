@@ -33,47 +33,34 @@ public class MemoryTester {
 		System.out.println();
 		System.out.println("DYNAMIC MEMORY SIMULATION");
 		for (int i = 0; i < jobRequests.size(); i++) {
-			dyn.printAll();
 			dyn.addJob(algo, jobRequests.poll().job);
 			if(ThreadLocalRandom.current().nextDouble() > .75){
 				dyn.removeJob();
 			}
+			dyn.printAll();
 		}
 	}
 
-	private static void simulateAllocation(FixedMemory fix, ArrayDeque<JobRequest> jobArray, Algorithm algo) {
+	private static void simulateAllocation(FixedMemory fix, ArrayDeque<JobRequest> jobRequests, Algorithm algo) {
 		System.out.println("FIXED MEMORY SIMULATION");
-		fix.addJob(algo, jobArray.get(0));
-		fix.printAll();
-		fix.addJob(algo, jobArray.get(1));
-		fix.printAll();
-		fix.addJob(algo, jobArray.get(2));
-		fix.printAll();
-		fix.addJob(algo, jobArray.get(3));
-		fix.printAll();
-		fix.removeJob(1);
-		fix.printAll();
-		fix.addJob(algo, jobArray.get(4));
-		fix.printAll();
-		fix.addJob(algo, jobArray.get(5));
-		fix.removeJob(4);
-		fix.printAll();
-		fix.removeJob(3);
-		fix.printAll();
-		fix.removeJob(2);
-		fix.printAll();
+		for (int i = 0; i < jobRequests.size(); i++) {
+			fix.addJob(algo, jobRequests.poll().job);
+			if(ThreadLocalRandom.current().nextDouble() > .75){
+				fix.removeJob();
+			}
+			fix.printAll();
+		}
 	}
 
 	private static ArrayDeque<JobRequest> jobBuilder(){
 		ArrayDeque<JobRequest> jobArray = new ArrayDeque<JobRequest>();
 		for (int i = 0; i < SEQUENCE_LENGTH; i++) {
-			JobRequest e = new JobRequest();
-			jobArray.add(e);
+			jobArray.add(new JobRequest());
 		}
 		return jobArray;
 	}
 	
-	private class JobRequest 
+	private static class JobRequest 
 	{
 		Job job;
 		private JobRequest(){

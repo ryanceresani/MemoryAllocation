@@ -5,11 +5,14 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 import memAllocator.MemoryTester.Algorithm;
 
@@ -288,7 +291,10 @@ public class FixedMemory{
 	 * updates the free list, and then checks to see if anything in the Wait Queue can be assigned
 	 * @param id
 	 */
-	public void removeJob(int id){
+	public void removeJob(){
+		List<Integer> keysAsArray = new ArrayList<Integer>(jobMap.keySet());
+		int rand = ThreadLocalRandom.current().nextInt(0, keysAsArray.size());
+		int id = keysAsArray.get(rand);
 		try{
 			Partition p = jobMap.get(id);
 			jobMap.remove(id);

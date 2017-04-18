@@ -1,6 +1,7 @@
 package memAllocator;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -306,10 +307,10 @@ public class DynamicMemory{
 	 * @param id
 	 */
 	public void removeJob(){
-		System.out.println("\n***REMOVE JOB " + id);
-		Set<Integer> keyList = jobMap.keySet();
-		int rand = ThreadLocalRandom.current().nextInt(0, keyList.size());
-		int id = ;
+		System.out.println("\n***REMOVE JOB");
+		List<Integer> keysAsArray = new ArrayList<Integer>(jobMap.keySet());
+		int rand = ThreadLocalRandom.current().nextInt(0, keysAsArray.size());
+		int id = keysAsArray.get(rand);
 		try {
 			Partition p = jobMap.get(id);
 			jobMap.remove(id);
