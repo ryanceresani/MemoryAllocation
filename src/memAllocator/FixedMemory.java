@@ -22,7 +22,7 @@ import memAllocator.MemoryTester.Algorithm;
  */
 public class FixedMemory{
 
-	private static final String CONFIG_NAME = "FixedPartitionConfig";
+	private static String CONFIG_NAME ;
 	private long totalSize;
 	private LinkedList<Partition> partitions;
 	private ArrayDeque<Job> waitJobs;
@@ -31,7 +31,8 @@ public class FixedMemory{
 	private TreeMap<Long, Partition> freeList;
 	private long lastAlotted;
 
-	public FixedMemory(long size, long memAddress){
+	public FixedMemory(long size, long memAddress, String configName){
+		CONFIG_NAME = configName;
 		totalSize = size;
 		this.address = memAddress;
 		partitions = new LinkedList<Partition>();
