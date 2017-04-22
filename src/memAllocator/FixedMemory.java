@@ -110,7 +110,7 @@ public class FixedMemory{
 			else{
 				long jobBreaks = p.getCurrentJob().getSize()/10;
 				long breaks = p.getSize()/10 - jobBreaks;
-				System.out.format(leftAlignFormat, "Job " + p.getCurrentJob().getId() + " = " + p.getSize() + "k");
+				System.out.format(leftAlignFormat, "Job " + p.getCurrentJob().getId() + " = " + p.getCurrentJob().getSize() + "k");
 				for (int i = 0; i < jobBreaks; i++) {
 					System.out.format(leftAlignFormat, "","%n");
 				}
